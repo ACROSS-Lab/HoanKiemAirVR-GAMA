@@ -7,6 +7,7 @@ species unity_linker parent: abstract_unity_linker {
 	string player_species <- string(unity_player);
 	point location_init <- {50.0,50.0,0.0};
 	int max_num_players  <- -1;
+	int min_num_players  <- 1;
 	
 	
 	
@@ -80,6 +81,12 @@ experiment vr_xp parent:Runme autorun: true type: unity {
 	action create_player(string id) {
 		ask unity_linker {
 			do create_player(id); 
+		}
+	}
+	
+	action init_player(string id) {
+		ask unity_linker {
+			do send_init_data(unity_player first_with (each.name = id)); 
 		}
 	}
 	output {
