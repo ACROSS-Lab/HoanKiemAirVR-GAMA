@@ -7,7 +7,8 @@
 
 model traffic
 
-import "UnityLink.gaml"
+import "Road.gaml"
+
 import "Building.gaml"
 
 global {
@@ -56,7 +57,7 @@ species motorbike parent: vehicle {
 	
 }
 
-species vehicle skills:[driving] parent: agent_to_send {
+species vehicle skills:[driving]  {
 	string type;
 	building target;
 	point shift_pt <- location ;	

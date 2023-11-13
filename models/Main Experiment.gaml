@@ -5,7 +5,6 @@
 ***/
 model main 
 
-import "UnityLink.gaml"
 import "Pollution.gaml"
 
 
@@ -28,14 +27,19 @@ global {
 	rgb color_inner_building <- rgb(100, 100, 100);
 	rgb color_outer_building <- rgb(60, 60, 60);
 	rgb color_lake <- rgb(165, 199, 238, 255);
-
+	map<string,list<road>> name_to_roads;
 	// Initialization 
 	string resources_dir <- "../data/";
 
 	// Load shapefiles
 	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
+
 	geometry shape <- envelope(buildings_shape_file);
 
+
+	list<string> previous_closed_roads;
+	
+	
 	int cars <- 200;
 	int motos <- 700;
 
@@ -71,13 +75,13 @@ global {
 		
 
 		do update_road_scenario(0); 
+		
+		name_to_roads <- road group_by each.name;
 
 		
 		// ######################################################################
-		name_to_roads <- road group_by each.name;
+		//name_to_roads <- road group_by each.name;
 		// Send roads geometries to Unity with a collider
-		do add_background_data_with_names(road collect (each.shape buffer (each.num_lanes * lane_width)), road collect each.name, road collect "Road", 0.2, true);
-		do add_background_data_with_names_3D((building where (each.type != "outArea" and each.shape.area > 0.1)) collect each.shape, (building where (each.type != "outArea" and each.shape.area > 0.1))  collect each.name, building collect "Building", building collect rnd(5.0,12.0), false);
 		
 		// ######################################################################
 	}
@@ -121,7 +125,6 @@ global {
 	reflex updating_traffic {
 		do update_car_population(cars);
 		do update_motorbike_population( motos);
-		agents_to_send <- list(car) + list(motorbike);
 		if (udpate_roads) {
 			do update_road_closed;
 			udpate_roads <- false;
@@ -173,7 +176,6 @@ global {
 		
 		do update_car_population(cars);
 		do update_motorbike_population( motos);
-		agents_to_send <- list(car) + list(motorbike);
 		
 	}
 	
@@ -193,16 +195,7 @@ global {
 	}
 	
 	// ######################################################################
-	//filter the agents to send according to the player_agent_perception_radius - can be overrided 
-	list<agent_to_send> filter_distance(list<agent_to_send> ags) {
-		geometry geom <- (the_player.location buffer player_agent_perception_radius);
-		list<vehicle> vs;
-		loop r over: road overlapping geom {
-			vs <- vs + list<vehicle>(r.all_agents where (vehicle(each).final_target != nil));  
-		}
-		return vs;
-		
-	}
+
 
 	//filter the agents to send to avoid agents too close to each other - can be overrided 
 //	list<agent_to_send> filter_overlapping(list<agent_to_send> ags) {
@@ -219,24 +212,14 @@ global {
 	
 	} 
 
-experiment "Run me" autorun: true  {
+experiment Runme autorun: true  {
 	float maximum_cycle_duration <- 0.15;
 	output {
 		//monitor "nb cars" value: length(car);
 		//monitor "nb motorbikes" value: length(motorbike);
 		display Computer virtual: false type: 3d toolbar: true background: #black axes: false {
 			
-			event #mouse_down {
-				move_player_event <- true;
-				/*ask world {
-					ask road overlapping (#user_location buffer 2.0) {
-						closed <- !closed;
-					}
-					udpate_roads <- true;
-				
-				}*/
-			}
-			
+		
 			species road {
 				draw self.shape + 4 color: closed ? color_closed : color_road;
 			}
@@ -251,7 +234,7 @@ experiment "Run me" autorun: true  {
 
 			mesh cell triangulation: true transparency: 0.4 smooth: 3 above: 5 color: pal position: {0, 0, 0.01} visible: true;
 			
-			species default_player position: {0, 0, 0.1} ;
+			
 		}
 
 	}

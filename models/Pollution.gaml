@@ -73,10 +73,10 @@ global {
 //			write pollution_index;
 		}
 		
-		ask default_player {
+		/*ask default_player {
 			pollution_level <- myself.raw_index_of_pollution(location);
 //			write pollution_level ;
-		}
+		}*/
 	}
 
 	reflex pollution_evolution {
