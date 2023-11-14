@@ -28,33 +28,119 @@ global {
 	rgb color_outer_building <- rgb(60, 60, 60);
 	rgb color_lake <- rgb(165, 199, 238, 255);
 	map<string,list<road>> name_to_roads;
-	// Initialization 
-	string resources_dir <- "../data/";
-
 	// Load shapefiles
-	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
+//	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
 
-	geometry shape <- envelope(buildings_shape_file);
+//	geometry shape <- envelope(buildings_shape_file);
 
 
 	list<string> previous_closed_roads;
 	
+	string BANGKOK <- "Bangkok" const: true;
+	string HANOI <- "Hanoi" const: true;
+
+	string dataset <- "Hanoi" among: ["Hanoi", "Bangkok"];
 	
-	int cars <- 200;
-	int motos <- 700;
+	int cars <- dataset = BANGKOK ? 1000 : 500;
+	int motos <- dataset = BANGKOK ?  500 : 700;
+	
+	bool use_traffic_light <- false;
+	int min_lanes <- 1;
+	float vehicle_size_coeff <- 3.0;
+	
+		// Initialization 
+	string resources_dir <- "../data/" + dataset + "/";
+	
+	list<string> roads_to_keep <-  ["motorway", "motorway_link", "primary", "primary_link", "residential", "secondary", "secondary_link", "service", "tertiary", "tertiary_link", "unclassified"];
+
+	shape_file intersections_shape_file <- file_exists(resources_dir + "intersections.shp") ? shape_file(resources_dir + "intersections.shp") : nil;
+
+	shape_file roads_shape_file <- shape_file(resources_dir +"roads.shp");
+	shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
+	shape_file background_shape_file <-  file_exists(resources_dir + "sub_area.shp") ?  shape_file(resources_dir + "sub_area.shp") : nil;
+	bool use_sub_area <- false;
+	//shape_file buildings_shape_file <- shape_file(resources_dir + "buildings.shp");
+	geometry shape <- envelope((background_shape_file != nil and use_sub_area) ?  background_shape_file : buildings_shape_file);
+
+	
+
 
 	init {
-		create road from: shape_file(resources_dir + "roads.shp");
-		loop r over: road {
-			if (!r.oneway) {
-				create road with: (shape: polyline(reverse(r.shape.points)), name: r.name, type: r.type, s1_closed: r.s1_closed, s2_closed: r.s2_closed);
-			} 
+		
+		
+		if (background_shape_file = nil) {
+			use_sub_area <- false;
 		}
+		if (intersections_shape_file != nil and use_traffic_light)  {
+			create intersection from: intersections_shape_file with:[is_traffic_signal::(string(read("highway")) = "traffic_signals"), is_crossing :: (string(read("crossing")) = "traffic_signals")] {
+				if (is_crossing) {is_traffic_signal <- true;}
+				if not (is_traffic_signal) { do die;}
+			}
+		}
+		
+		//create intersection from: 
+		create road from: roads_shape_file with:[ name::string(read("name")),type::string(get("highway")),junction::string(read("junction")),num_lanes::int(read("lanes")), maxspeed::float(read("maxspeed")) #h/#km, oneway_string::string(read("oneway")), lanes_forward ::int (get( "lanesforwa")), lanes_backward :: int (get("lanesbackw"))] {
+			if maxspeed <= 0 {maxspeed <- 50 #km/#h;}
+			oneway <- oneway_string != nil and oneway_string = "yes";
+			if (lanes_forward > 0) {
+				num_lanes <- lanes_forward;
+			} 
+			if not (oneway) {
+				create road with:(shape: line(reverse(shape.points)), num_lanes: lanes_backward > 0 ? lanes_backward : num_lanes, linked_road: self,
+					name: name, type: type, s1_closed: s1_closed, s2_closed: s2_closed
+					
+				) {
+					myself.linked_road <- self;
+				}
+			}
+				
+		}	
+		map<string,list<road>> roads <- road group_by each.name;
+		ask road   {
+			if (num_lanes = 0) and not empty(roads[name]) {
+				road r <-  roads[name] first_with (not dead(each) and (each.num_lanes > 0));
+				if (r != nil) {
+					num_lanes <- r.num_lanes;
+				}
+			}
+			num_lanes <- max(num_lanes, min_lanes) *2;
+			if type != nil and not(type in roads_to_keep) {
+				do die;
+			} 
+			
+			if (use_sub_area and !(self overlaps first(background_shape_file))) {
+				do die;
+			}
+		}
+		
+		graph g <- as_edge_graph(road);
+		g <-  main_connected_component(g);
+		ask road {
+			if not(self in g.edges) {
+				do die;
+			}
+		}
+		
+		list<point> pts <- list<point>(g.vertices where empty(intersection overlapping each));
+		loop pt over: pts {
+			create intersection with: (location:pt);
+		}
+				
+			
 		ask road {
 			if  name = nil or  name = "" {
 				name <- "road_" + int(self);
 			}
 		}
+		
+	//create decoration_building from: shape_file(resources_dir + "admin.shp");
+		create natural from: shape_file(resources_dir + "naturals.shp") {
+			if (use_sub_area and !(self overlaps first(background_shape_file))) {
+				do die;
+			} 
+		}
+		//create natural from: shape_file(resources_dir + "naturals.shp");
+		
 			
 		// ######################################################################
 //		create building from: shape_file(buildings_shape_file) {
@@ -63,18 +149,22 @@ global {
 //			}
 //		}
 		
-		 create building from: shape_file(buildings_shape_file);
+		 create building from: shape_file(buildings_shape_file) {
+		 	if (use_sub_area and !(self overlaps first(background_shape_file))) {
+				do die;
+			}
+		 }
 		// ######################################################################
 			
 		ask road {
+			
 			agent ag <- building closest_to self;
-			float dist <- ag = nil ? 8.0 : max(min( ag distance_to self - 5.0, 8.0), 2.0);
-			num_lanes <- int(dist / lane_width);
-			 capacity <- 1 + (num_lanes * shape.perimeter/3);
+			
 		}
 		
 
 		do update_road_scenario(0); 
+
 		
 		name_to_roads <- road group_by each.name;
 
@@ -168,7 +258,7 @@ global {
 			vehicle_ordering <- nil;
 		}
 		//build the graph from the roads and intersections
-		road_network <- as_driving_graph(open_roads, intersection) with_shortest_path_algorithm #FloydWarshall;
+		road_network <- as_driving_graph(open_roads, intersection);// with_shortest_path_algorithm #FloydWarshall;
 		//geometry road_geometry <- union(open_roads accumulate (each.shape));
 		ask agents of_generic_species vehicle {
 			do select_target_path;

@@ -20,3 +20,10 @@ species building schedules: [] {
 		return map("b"::[int(self), pollution_index]);
 	}
 }
+
+
+species natural schedules: [] {}
+
+
+
+species decoration_building schedules: [] {}
