@@ -7,7 +7,7 @@ species unity_linker parent: abstract_unity_linker {
 	string player_species <- string(unity_player);
 	point location_init <- {50.0,50.0,0.0};
 	int max_num_players  <- -1;
-	int min_num_players  <- 1;
+	int min_num_players  <- 0;
 	
 	
 	
@@ -48,12 +48,11 @@ species unity_player parent: abstract_unity_player{
 	}
 }
 
-experiment vr_xp parent:Runme autorun: true type: unity {
+experiment vr_xp parent:Runme autorun: false type: unity {
 	float minimum_cycle_duration <- 0.05;
 	string unity_linker_species <- string(unity_linker);
 	list<string> displays_to_hide <- ["Computer"];
 	
-		
 	action update_road_closed(string mes) {
 		ask world {
 			map answer <- map(mes);
@@ -80,17 +79,17 @@ experiment vr_xp parent:Runme autorun: true type: unity {
 	
 	action create_player(string id) {
 		ask unity_linker {
-			do create_player(id); 
+			do create_player(id);
 		}
 	}
 	
 	action init_player(string id) {
 		ask unity_linker {
-			do send_init_data(unity_player first_with (each.name = id)); 
+			do send_init_data(player_agents[id]); 
 		}
 	}
 	output {
-		 display ComputerVR parent:Computer{
+		 display ComputerVR parent:Computer {
 			 species unity_player;
 			 event #mouse_down{
 				 ask unity_linker {
