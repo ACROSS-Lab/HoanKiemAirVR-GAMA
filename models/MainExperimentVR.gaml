@@ -7,14 +7,19 @@ species unity_linker parent: abstract_unity_linker {
 	string player_species <- string(unity_player);
 	point location_init <- {50.0,50.0,0.0};
 	int max_num_players  <- -1;
-	int min_num_players  <- 0;
+	int min_num_players  <- 1;
 	
 	
 	
 	init {
-		do init_species_to_send([string(motorbike), string(car)]);		do add_background_data geoms: road collect (each.shape) names: road collect (each.name) height: 1.0 collider: false ;
-		do add_background_data(road collect (each.shape buffer (each.num_lanes * lane_width)), road collect each.name, "Road", 0.2, true);
-		do add_background_data((building where (each.type != "outArea" and each.shape.area > 0.1)) collect each.shape, (building where (each.type != "outArea" and each.shape.area > 0.1))  collect each.name, "Building", 5.0, false);
+		do init_species_to_send([string(motorbike), string(car)]);		
+		do add_background_data geoms: road collect  (each.shape buffer (each.num_lanes * lane_width)) names: road collect (each.name) tag:"road" height: 0.2 collider: true is_3D: false;
+		
+		list<building> bds <- (building where (each.type != "outArea" and each.shape.area > 0.1));
+		do add_background_data geoms: bds collect  (each.shape) names: bds collect (each.name) tag:"building" height: 5.0 collider: false is_3D: true;
+		
+		//do add_background_data(road collect (each.shape buffer (each.num_lanes * lane_width)), road collect each.name, "Road", 0.2, true);
+		//do add_background_data( collect each.shape, (building where (each.type != "outArea" and each.shape.area > 0.1))  collect each.name, "Building", 5.0, false);
 	
 	}
 	
