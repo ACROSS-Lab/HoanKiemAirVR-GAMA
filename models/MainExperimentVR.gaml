@@ -23,6 +23,10 @@ species unity_linker parent: abstract_unity_linker {
 	
 	}
 	
+	action add_to_send_world(map map_to_send) {
+		
+	}
+	
 		//filter the agents to send according to the player_agent_perception_radius - can be overrided 
 	/*list<agent> filter_distance(list<agent> ags) {
 		geometry geom <- (the_player.location buffer player_agent_perception_radius);
