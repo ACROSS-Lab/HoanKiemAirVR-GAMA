@@ -48,6 +48,11 @@ global {
 	int min_lanes <- 1;
 	float vehicle_size_coeff <- 3.0;
 	
+	int nb_level_haut ;
+	int nb_level_moyen ;
+	int nb_level_bas ;
+	float aqi_mean ;
+	
 		// Initialization 
 	string resources_dir <- "../data/" + dataset + "/";
 	
@@ -269,6 +274,14 @@ global {
 		
 	}
 	
+	list<map> message_buildings(list<building> buildings_input) {
+			list<map> buildings;
+			ask buildings_input {
+				buildings <+ to_array();
+			}
+			return buildings;
+		}
+	
 	action update_road_scenario (int scenario) {
 		open_roads <- scenario = 1 ? road where !each.s1_closed : (scenario = 2 ? road where !each.s2_closed : list(road));
 		// Change the display of roads
@@ -299,7 +312,15 @@ global {
 //		return ags - to_remove;	
 //	}
 	// ######################################################################
-	
+		
+		
+		reflex cell_area when: every(10 #cycle) {
+			nb_level_haut <- cell count (each >= 700);
+			nb_level_moyen <- cell count (each >= 500 and each < 700);
+			nb_level_bas <- cell count (each >= 200) - (nb_level_moyen + nb_level_haut);
+			aqi_mean <- (nb_level_haut^3 + nb_level_moyen^1.5 + nb_level_bas^0.2) / grid_size;
+		}
+		
 	} 
 
 experiment Runme autorun: true  {

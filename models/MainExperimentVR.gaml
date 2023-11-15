@@ -8,23 +8,60 @@ species unity_linker parent: abstract_unity_linker {
 	point location_init <- {50.0,50.0,0.0};
 	int max_num_players  <- -1;
 	int min_num_players  <- 1;
+	bool use_physics_for_player <- false;
 	
 	
 	
 	init {
 		do init_species_to_send([string(motorbike), string(car)]);		
-		do add_background_data geoms: road collect  (each.shape buffer (each.num_lanes * lane_width)) names: road collect (each.name) tag:"road" height: 0.2 collider: true is_3D: false;
+		do add_background_data geoms: road collect  (each.shape buffer (each.num_lanes * lane_width)) names: road collect (each.name) tag:"Road" height: 0.2 collider: true is_3D: false;
 		
 		list<building> bds <- (building where (each.type != "outArea" and each.shape.area > 0.1));
-		do add_background_data geoms: bds collect  (each.shape) names: bds collect (each.name) tag:"building" height: 5.0 collider: false is_3D: true;
+		do add_background_data geoms: bds collect  (each.shape) names: bds collect (each.name) tag:"Building" height: 5.0 collider: false is_3D: true;
 		
 		//do add_background_data(road collect (each.shape buffer (each.num_lanes * lane_width)), road collect each.name, "Road", 0.2, true);
 		//do add_background_data( collect each.shape, (building where (each.type != "outArea" and each.shape.area > 0.1))  collect each.name, "Building", 5.0, false);
 	
 	}
 	
-	action add_to_send_world(map map_to_send) {
+//	action add_to_send_world(map to_send) {
+//		list message_bds <- [];
+//		list<building> buildings <- (building where (each.type != "outArea"));
+//		float total_closed_road <- 0.0;
+//		
+//		ask road where each.closed {
+//			total_closed_road <- total_closed_road + shape.perimeter;
+//		}
+//		
+//		message_bds <- world.message_buildings(buildings);
+//		
+//		to_send <+ "buildings"::message_bds;
+//		to_send <+ "aqimean"::aqi_mean;
+//		to_send <+ "aqistd"::aqi_std;
+//		to_send <+ "roadClosedDist"::total_closed_road;
+//		to_send <+ "pAreaHigh"::nb_level_haut;
+//		to_send <+ "pAreaMid"::nb_level_moyen;
+//		to_send <+ "pAreaLow"::nb_level_bas;
+//	}
+	
+	action after_sending_world(map map_to_send) {
+		list message_bds <- [];
+		list<building> buildings <- (building where (each.type != "outArea"));
+		float total_closed_road <- 0.0;
 		
+		ask road where each.closed {
+			total_closed_road <- total_closed_road + shape.perimeter;
+		}
+		
+		message_bds <- world.message_buildings(buildings);
+		
+		map_to_send <+ "buildings"::message_bds;
+		map_to_send <+ "aqimean"::aqi_mean;
+		map_to_send <+ "aqistd"::aqi_std;
+		map_to_send <+ "roadClosedDist"::total_closed_road;
+		map_to_send <+ "pAreaHigh"::nb_level_haut;
+		map_to_send <+ "pAreaMid"::nb_level_moyen;
+		map_to_send <+ "pAreaLow"::nb_level_bas;
 	}
 	
 		//filter the agents to send according to the player_agent_perception_radius - can be overrided 
@@ -97,6 +134,14 @@ experiment vr_xp parent:Runme autorun: false type: unity {
 			do send_init_data(player_agents[id]); 
 		}
 	}
+	
+	action move_player_external(string id, int x, int y, int rotation) {
+		ask unity_linker {
+			do move_player_external(id, x, y, rotation);
+		}
+	}
+		
+	
 	output {
 		 display ComputerVR parent:Computer {
 			 species unity_player;
