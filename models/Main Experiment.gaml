@@ -359,9 +359,9 @@ experiment RunmeTable autorun: true  {
 	float maximum_cycle_duration <- 0.15;
 	output {
 		
-		display Table virtual: false  fullscreen: 0 type: 3d  toolbar: false axes: false keystone:
-		[{-0.03014, -0.02732, 0.0}, {-0.02260, 1.01663, 0.0}, {1.0, 1.0, 0.0}, {1.015070, -0.01306, 0.0}] {
-
+		display Table virtual: false  fullscreen: 0 type: 3d  toolbar: false background: #black axes: false 
+		keystone: [{-0.03014, -0.02732, 0.0}, {-0.02260, 1.01663, 0.0}, {1.0, 1.0, 0.0}, {1.015070, -0.01306, 0.0}] 
+		{
 			
 			species natural refresh: false {
 				draw self.shape color: color_lake;
