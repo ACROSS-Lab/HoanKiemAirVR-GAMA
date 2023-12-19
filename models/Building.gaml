@@ -16,6 +16,7 @@ species building schedules: [] {
 	string type;
 	geometry pollution_perception <- shape+50;
 	int pollution_index;
+	int pollution_index_scale;
 	map to_array {
 		return map("b"::[int(self), pollution_index]);
 	}

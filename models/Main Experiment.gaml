@@ -22,7 +22,7 @@ global {
 	legends <- [color_inner_building::"District Buildings", color_outer_building::"Outer Buildings", color_road::"Roads", color_closed::"Closed Roads", color_lake::"Rivers & lakes", color_car::"Cars", color_moto::"Motorbikes"];
 	rgb color_car <- #lightblue;
 	rgb color_moto <- #cyan;
-	rgb color_road <- #lightgray;
+	rgb color_road <- #gray;
 	rgb color_closed <- #mediumpurple;
 	rgb color_inner_building <- rgb(100, 100, 100);
 	rgb color_outer_building <- rgb(60, 60, 60);
@@ -323,7 +323,7 @@ global {
 		
 	} 
 
-experiment Runme autorun: true  {
+experiment RunmeComputer autorun: true  {
 	float maximum_cycle_duration <- 0.15;
 	output {
 		//monitor "nb cars" value: length(car);
@@ -347,8 +347,49 @@ experiment Runme autorun: true  {
 			
 			
 		}
+		
+
 
 	}
 
 }
+
+
+experiment RunmeTable autorun: true  {
+	float maximum_cycle_duration <- 0.15;
+	output {
+		
+		display Table virtual: false  fullscreen: 0 type: 3d  toolbar: false axes: false keystone:
+		[{-0.03014, -0.02732, 0.0}, {-0.02260, 1.01663, 0.0}, {1.0, 1.0, 0.0}, {1.015070, -0.01306, 0.0}] {
+
+			
+			species natural refresh: false {
+				draw self.shape color: color_lake;
+			}
+
+			species road {
+				draw self.shape + (num_lanes) color: closed ? color_closed : color_road;
+			}
+			species intersection;
+			
+			//camera 'default' location: {1009.9128, 1455.358, 3976.353} target: {1009.9128, 1455.2886, 0.0} locked: false;
+			agents "Vehicles" value: (agents of_generic_species(vehicle)) where (each.current_road != nil) {
+			
+					draw rectangle(vehicle_length * vehicle_size_coeff , lane_width * num_lanes_occupied * vehicle_size_coeff ) depth: 1.0 at: shift_pt color: type = CAR ? color_car : color_moto rotate: self.heading;
+		//	draw rectangle(vehicle_length * 5, lane_width * num_lanes_occupied * 5) at: shift_pt color: type = CAR ? color_car : color_moto rotate: self.heading;
+			}
+
+			species building {
+				draw self.shape depth: 10 color: type = OUT ? color_outer_building : pal[pollution_index_scale] ;
+			}
+		
+
+		}
+
+
+	}
+
+}
+
+
 

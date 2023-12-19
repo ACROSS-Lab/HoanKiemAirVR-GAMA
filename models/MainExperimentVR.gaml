@@ -94,7 +94,9 @@ species unity_player parent: abstract_unity_player{
 	}
 }
 
-experiment vr_xp parent:Runme autorun: false type: unity {
+
+
+experiment vr_xp parent:RunmeTable autorun: false type: unity {
 	float minimum_cycle_duration <- 0.05;
 	string unity_linker_species <- string(unity_linker);
 	list<string> displays_to_hide <- ["Computer"];
@@ -143,7 +145,7 @@ experiment vr_xp parent:Runme autorun: false type: unity {
 		
 	
 	output {
-		 display ComputerVR parent:Computer {
+		 display ComputerVR parent:Table {
 			 species unity_player;
 			 event #mouse_down{
 				 ask unity_linker {

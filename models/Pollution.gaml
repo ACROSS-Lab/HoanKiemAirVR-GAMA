@@ -70,6 +70,7 @@ global {
 		ask building {
 //			pollution_index <- myself.index_of_pollution(pollution_perception);
 			pollution_index <- myself.raw_index_of_pollution(pollution_perception);
+			pollution_index_scale <- myself.index_of_pollution(pollution_perception);
 //			write pollution_index;
 		}
 		
