@@ -5,7 +5,7 @@
 * Tags: Tag1, Tag2, TagN
 ***/
 
-model traffic
+model traffic 
 
 import "UnityLink.gaml"
 import "Building.gaml"
@@ -17,7 +17,7 @@ global {
 	graph road_network;
 	float lane_width <- 1.0;
 }
-
+ 
 
 
 
@@ -63,11 +63,11 @@ species vehicle skills:[driving] parent: agent_to_send {
 	bool at_home <- true;
 	init {
 		
-		proba_respect_priorities <- 0.1;
-		proba_respect_stops <- [0.6];
+		proba_respect_priorities <- 0.0;
+		proba_respect_stops <- [0.0];
 		proba_use_linked_road <- 0.0;
 
-		lane_change_limit <- 2;
+		lane_change_limit <- 5;
 		linked_lane_limit <- 0; 
 		location <- one_of(building).location;
 	}

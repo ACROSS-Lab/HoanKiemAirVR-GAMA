@@ -8,7 +8,7 @@
 @no_experiment
 model UnityLink
 
-import "Main Experiment.gaml"
+import "experiments/Abstract Experiment.gaml"
 
 import "Road.gaml"
 import "Building.gaml"
@@ -87,7 +87,7 @@ global skills: [network]{
 	point location_init <- {950.0, 950.0};
 
 	//player size - only used for displaying the player in GAMA
-	float player_size_GAMA <- 3.0;
+	float player_size_GAMA <- 30.0;
 	
 	//player rotation - only used for displaying the player in GAMA
 	int rotation_player <- -90;
@@ -412,7 +412,7 @@ global skills: [network]{
 	    	try {
 	    		answer <- map(s.contents);
 	    	} catch {
-	    		write s.contents;
+	    		//write s.contents;
 	    	}
 	    	
 	    	if (answer != nil) {

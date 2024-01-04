@@ -6,17 +6,20 @@
 ***/
 model pollution
 
-import "Traffic.gaml"
+import "UnityLink.gaml"
+
+import "Traffic.gaml" 
 
 global {
-	
-	
+	 
+	 
 	// Params
 	
 	float aqi_worst_max <- 800.0;
 	float aqi_worst_mean <- 60.0;
+	float aqi_mean <- mean(cell) update: mean(cell);
 	float aqi_std <- standard_deviation(cell) update: standard_deviation(cell);
-//	float aqi_max <- min(aqi_worst_max, max(cell)) update: min(aqi_worst_max, max(cell));
+	float aqi_max <- min(aqi_worst_max, max(cell)) update: min(aqi_worst_max, max(cell));
 	
 // Pollution diffusion
 	float pollutant_decay_rate <- 0.1;
@@ -68,7 +71,7 @@ global {
 	
 	reflex building_pollution {
 		ask building {
-//			pollution_index <- myself.index_of_pollution(pollution_perception);
+			pollution_index_scale <- myself.index_of_pollution(pollution_perception);
 			pollution_index <- myself.raw_index_of_pollution(pollution_perception);
 //			write pollution_index;
 		}
